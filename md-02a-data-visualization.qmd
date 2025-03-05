@@ -1,6 +1,6 @@
 ---
 title: "Data Visualisation"
-author: ""
+author: "Nicolo Massari"
 format:
   html:
     embed-resources: true
@@ -46,10 +46,10 @@ library(rnaturalearth)
 7.  Render the document and fix any errors.
 
 ```{r}
-#| eval: false
+#| eval: true
  
-gapminder_2007 <- ___ |> 
-  ___(year == 2007) 
+gapminder_2007 <- gapminder |>
+  filter(year == 2007) 
 ```
 
 ## Task 3: Summarize data for life expectancy by continent
@@ -73,13 +73,13 @@ gapminder_2007 <- ___ |>
 8.  Render the document and fix any errors.
 
 ```{r}
-#| eval: false
+#| eval: true
 
-gapminder_summary_2007 <- ___ |> 
-  group_by(___) |> 
+gapminder_summary_2007 <- gapminder_2007 |> 
+  group_by(continent) |> 
   summarise(
     count = n(),
-    lifeExp = median(___)
+    lifeExp = median(lifeExp)
   )
 ```
 
@@ -104,11 +104,11 @@ gapminder_summary_2007 <- ___ |>
 8.  Render the document and fix any errors.
 
 ```{r}
-#| eval: false
+#| eval: true
 
-gapminder_summary_continent_year <- gapminder ___ 
-  group_by(continent, ___) |> 
-  ___(lifeExp = median(lifeExp)) 
+gapminder_summary_continent_year <- gapminder |> 
+  group_by(continent, year) |> 
+  summarise(lifeExp = median(lifeExp)) 
 
 ```
 
@@ -121,12 +121,9 @@ Thank you for working through the previous tasks. We are convinced that you have
 ```{r}
 #| label: load-data
 
-gapminder_2007 <- read_rds(here::here("data/gapminder-2007.rds"))
-
-gapminder_summary_2007 <- read_rds(here::here("data/gapminder-summary-2007.rds"))
-
-gapminder_summary_continent_year <- read_rds(here::here("data/gapminder-summary-continent-year.rds"))
-
+mapply(setdiff, gapminder_2007, read_rds(here::here("data/gapminder-2007.rds")))
+mapply(setdiff, gapminder_summary_2007, read_rds(here::here("data/gapminder-summary-2007.rds")))
+mapply(setdiff, gapminder_summary_continent_year, read_rds(here::here("data/gapminder-summary-continent-year.rds")))
 ```
 
 ## Task 6: Create a boxplot
@@ -147,6 +144,18 @@ gapminder_summary_continent_year <- read_rds(here::here("data/gapminder-summary-
 
 ```{r}
 
+# https://stackoverflow.com/a/78066917
+ggplot(gapminder_2007, aes(continent, lifeExp, fill = continent)) +
+  geom_boxplot(outliers = FALSE) +
+  theme_linedraw()
+
+# data types
+# https://stackoverflow.com/a/45755735
+types <- lapply(gapminder_2007, class)
+str(types)
+
+# variables used: continent, lifeExp and continent
+str(c(types[2], types[4], types[2]))
 ```
 
 ## Task 7: Create a timeseries plot
@@ -163,6 +172,10 @@ gapminder_summary_continent_year <- read_rds(here::here("data/gapminder-summary-
 
 ```{r}
 
+ggplot(gapminder_summary_continent_year, aes(year, lifeExp, color = continent)) +
+  geom_line() +
+  geom_point() +
+  theme_linedraw()
 ```
 
 ## Task 8: Create a barplot
@@ -180,6 +193,9 @@ gapminder_summary_continent_year <- read_rds(here::here("data/gapminder-summary-
 
 ```{r}
 
+ggplot(gapminder_summary_2007, aes(continent, count, fill = continent)) +
+  geom_col() +
+  theme_linedraw()
 ```
 
 ### with `geom_bar()`
@@ -196,6 +212,11 @@ gapminder_summary_continent_year <- read_rds(here::here("data/gapminder-summary-
 
 ```{r}
 
+ggplot(gapminder_2007, aes(continent, fill=continent)) +
+  geom_bar() +
+  theme_linedraw()
+
+# code is equivalent as we are now using gapminder_2007, geom_bar just counts how many data points per element of a class, in our case, continents. It is a histogram function with automatic binning dictated by the class structure.
 ```
 
 ## Task 9: Create a histogram
@@ -222,6 +243,11 @@ gapminder_summary_continent_year <- read_rds(here::here("data/gapminder-summary-
 
 ```{r}
 
+ggplot(gapminder_2007, aes(lifeExp, fill = continent)) +
+  geom_histogram(col = "grey30", breaks = seq(40, 85, 2.5)) +
+  theme_linedraw()
+# geom_bar works with discrete variables that don't need binning, geom_histogram works with continuos variables.
+# breaks determines the binning, min and max values are 40 and 85, 2.5 is the size of a bin.
 ```
 
 ## Task 10: Scatterplot and faceting
@@ -245,6 +271,10 @@ gapminder_summary_continent_year <- read_rds(here::here("data/gapminder-summary-
 
 ```{r}
 
+ggplot(gapminder_2007, aes(gdpPercap, lifeExp, size=pop, color=country)) +
+  geom_point(show.legend = FALSE) +
+  facet_wrap(~continent) +
+  theme_linedraw()
 ```
 
 ## Task 11: Create a lineplot and use facets
@@ -262,7 +292,7 @@ gapminder_summary_continent_year <- read_rds(here::here("data/gapminder-summary-
 6.  Render the document and fix any errors.
 
 ```{r}
-#| eval: false
+#| eval: true
 
 ggplot(data = gapminder,
        mapping = aes(x = year, 
@@ -271,9 +301,12 @@ ggplot(data = gapminder,
                      color = country)) +
   geom_line(lwd = 1, show.legend = FALSE) + 
   facet_wrap(~continent) +
-  # scale_color_manual(values = country_colors) +
-  theme_minimal() 
+  scale_color_manual(values = country_colors) +
+  theme_linedraw()
 
+country_colors
+# ?country_colors
+# Color schemes for the countries and continents in the Gapminder data. 
 ```
 
 ## Task 12: Create a choropleth Maps
@@ -289,7 +322,7 @@ The code chunk below contains code for a world map that shows countries by incom
 3.  Render the document and fix any errors.
 
 ```{r}
-#| eval: false
+#| eval: true
 
 world <- ne_countries(scale = "small", returnclass = "sf")
 
